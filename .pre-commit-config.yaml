@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1  # You can specify a specific version if needed
+    hooks:
+      - id: nbstripout
+        files: \.ipynb$  # This ensures it only runs on Jupyter notebook files
