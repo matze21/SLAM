@@ -1,8 +1,7 @@
 from multiprocessing import Process, Queue
 import numpy as np
  
-import pangolin
-import OpenGL.GL as gl
+from mayavi import mlab
  
 # Global map // 3D map visualization using pangolin
 class Map(object):
@@ -39,57 +38,34 @@ class Map(object):
             self.viewer_refresh(q)
  
     def viewer_init(self, w, h):
-        pangolin.CreateWindowAndBind('Main', w, h)
-         
-        # This ensures that only the nearest objects are rendered, 
-        # creating a realistic representation of the scene with 
-        # correct occlusions.
-        gl.glEnable(gl.GL_DEPTH_TEST)
+        #pangolin.CreateWindowAndBind('Main', w, h)
+        mlab.figure(size=(w, h), bgcolor=(1, 1, 1))
+        mlab.view(azimuth=90, elevation=90, distance=10)
  
-        # Sets up the camera with a projection matrix and a model-view matrix
-        self.scam = pangolin.OpenGlRenderState(
-            # `ProjectionMatrix` The parameters specify the width and height of the viewport (w, h), the focal lengths in the x and y directions (420, 420), the principal point coordinates (w//2, h//2), and the near and far clipping planes (0.2, 10000). The focal lengths determine the field of view, 
-            # the principal point indicates the center of the projection, and the clipping planes define the range of distances from the camera within which objects are rendered, with objects closer than 0.2 units or farther than 10000 units being clipped out of the scene. 
-            pangolin.ProjectionMatrix(w, h, 420, 420, w//2, h//2, 0.2, 10000),
-            # pangolin.ModelViewLookAt(0, -10, -8, 0, 0, 0, 0, -1, 0) sets up the camera view matrix, which defines the position and orientation of the camera in the 3D scene. The first three parameters (0, -10, -8) specify the position of the camera in the world coordinates, indicating that the camera is located at coordinates (0, -10, -8). The next three parameters (0, 0, 0) 
-            # define the point in space the camera is looking at, which is the origin in this case. The last three parameters (0, -1, 0) represent the up direction vector, indicating which direction is considered 'up' for the camera, here pointing along the negative y-axis. This setup effectively positions the camera 10 units down and 8 units back from the origin, looking towards the origin with the 'up' direction being downwards in the y-axis, which is unconventional and might be used to achieve a specific orientation or perspective in the rendered scene.
-            pangolin.ModelViewLookAt(0, -10, -8, 0, 0, 0, 0, -1, 0))
-        # Creates a handler for 3D interaction.
-        self.handler = pangolin.Handler3D(self.scam)
-         
-        # Creates a display context.
-        self.dcam = pangolin.CreateDisplay()
-        # Sets the bounds of the display
-        self.dcam.SetBounds(0.0, 1.0, 0.0, 1.0, -w/h)
-        # assigns handler for mouse clicking and stuff, interactive
-        self.dcam.SetHandler(self.handler)
-        self.darr = None
+        
  
     def viewer_refresh(self, q):
         # Checks if the current state is None or if the queue is not empty.
         if self.state is None or not q.empty():
             # Gets the latest state from the queue.
             self.state = q.get()
-         
-        # Clears the color and depth buffers.
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-        # Sets the clear color to white.
-        gl.glClearColor(1.0, 1.0, 1.0, 1.0)
-        # Activates the display context with the current camera settings.
-        self.dcam.Activate(self.scam)
- 
-        # camera trajectory line and color setup
-        gl.glLineWidth(1)
-        gl.glColor3f(0.0, 1.0, 0.0)
-        pangolin.DrawCameras(self.state[0])
- 
-        # 3d point cloud color setup
-        gl.glPointSize(2)
-        gl.glColor3f(1.0, 0.0, 0.0)
-        pangolin.DrawPoints(self.state[1])
-         
-        # Finishes the current frame and swaps the buffers.
-        pangolin.FinishFrame()
+
+        mlab.clf()  # Clear the figure
+
+        # Set background color to white (optional since mlab.figure already sets it).
+        mlab.figure(bgcolor=(1, 1, 1))
+
+        if self.state is not None:
+            poses, pts = self.state
+
+            # Draw camera trajectory as lines
+            for pose in poses:
+                mlab.points3d(pose[0], pose[1], pose[2], color=(0, 1, 0), scale_factor=0.1)
+
+            # Draw points in the point cloud
+            mlab.points3d(pts[:, 0], pts[:, 1], pts[:, 2], color=(1, 0, 0), scale_factor=0.05)
+
+        mlab.draw()  # Refresh the visualization
  
      
     def display(self):

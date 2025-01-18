@@ -3,6 +3,7 @@ import numpy as np
 from skimage.measure import ransac
 from skimage.transform import FundamentalMatrixTransform
 import g2o
+import matplotlib.pyplot as plt
  
 def add_ones(x):
     # creates homogenious coordinates given the point x
@@ -70,6 +71,29 @@ def denormalize(K, pt):
     ret /= ret[2]
     return int(round(ret[0])), int(round(ret[1]))
 
+def printimg(image1,image2):
+    image1_rgb = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
+    image2_rgb = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
+
+    # Create a figure to display the images
+    plt.figure(figsize=(10, 5))
+
+    # Display the first image
+    plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
+    plt.imshow(image1_rgb)
+    plt.title('Image 1')
+    plt.axis('off')  # Hide axes
+
+    # Display the second image
+    plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
+    plt.imshow(image2_rgb)
+    plt.title('Image 2')
+    plt.axis('off')  # Hide axes
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+
 def match_frames(f1, f2):
     # The code performs k-nearest neighbors matching on feature descriptors
     bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -80,6 +104,7 @@ def match_frames(f1, f2):
     ret = []
     idx1, idx2 = [], []
     for m, n in matches:
+        #print('m,n',m.distance,n.distance)
         if m.distance < 0.75*n.distance:
             p1 = f1.pts[m.queryIdx]
             p2 = f2.pts[m.trainIdx]
@@ -94,7 +119,9 @@ def match_frames(f1, f2):
                 ret.append((p1, p2))
                 pass
  
- 
+    #if(len(ret))<8:
+    #    printimg(f1,f2)
+    print(len(ret))
     assert len(ret) >= 8
     ret = np.array(ret)
     idx1 = np.array(idx1)
@@ -121,7 +148,7 @@ class Frame(object):
     def __init__(self, mapp, img, K):
         self.K = K  # Intrinsic camera matrix
         self.Kinv = np.linalg.inv(self.K)  # Inverse of the intrinsic camera matrix
-        #self.pose = IRt  # Initial pose of the frame (assuming IRt is predefined)
+        self.pose = np.ones((4))  # Initial pose of the frame (assuming IRt is predefined)
  
         self.id = len(mapp.frames)  # Unique ID for the frame based on the current number of frames in the map
         mapp.frames.append(self)  # Add this frame to the map's list of frames

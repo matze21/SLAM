@@ -34,6 +34,7 @@ def process_frame(img):
     f2 = mapp.frames[-2]
  
     idx1, idx2, Rt = match_frames(f1, f2)
+
      
     # X_f1 = E * X_f2, f2 is in world coordinate frame, multiplying that with
     # Rt transforms the f2 pose wrt the f1 coordinate frame
@@ -80,8 +81,8 @@ def triangulate(pose1, pose2, pts1, pts2):
     ret = np.zeros((pts1.shape[0], 4))
  
     # Invert the camera poses to get the projection matrices
-    pose1 = np.linalg.inv(pose1)
-    pose2 = np.linalg.inv(pose2)
+    pose1 = 1/pose1
+    pose2 = 1/pose2
  
     # Loop through each pair of corresponding points
     for i, p in enumerate(zip(add_ones(pts1), add_ones(pts2))):
@@ -104,15 +105,12 @@ def triangulate(pose1, pose2, pts1, pts2):
     return ret
  
 if __name__== "__main__":
-    folder_path='../sample_data/Room_back_home-2024-12-29_19-50-26/'
+    folder_path='/Users/matthiaskargl/Codes/SLAM/sample_data/Room_back_home-2024-12-29_19-50-26/'
     folder_path_img = folder_path+'/Camera'
 
     image_filenames = sorted(os.listdir(folder_path_img))[1:-1]
  
     for img in image_filenames:
         path = os.path.join(folder_path_img, img)
-        ret, frame = cv2.imread(path)
-        if ret == True:
-            process_frame(frame)
-        else:
-            break
+        frame = cv2.imread(path)
+        process_frame(frame)
