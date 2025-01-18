@@ -148,7 +148,7 @@ class Frame(object):
     def __init__(self, mapp, img, K):
         self.K = K  # Intrinsic camera matrix
         self.Kinv = np.linalg.inv(self.K)  # Inverse of the intrinsic camera matrix
-        self.pose = np.ones((4))  # Initial pose of the frame (assuming IRt is predefined)
+        self.pose = np.eye(4) # Initial pose of the frame (assuming IRt is predefined)
  
         self.id = len(mapp.frames)  # Unique ID for the frame based on the current number of frames in the map
         mapp.frames.append(self)  # Add this frame to the map's list of frames
