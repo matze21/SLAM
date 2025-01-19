@@ -54,6 +54,7 @@ def process_frame(img):
     # Reject points without enough "Parallax" and points behind the camera
     # returns, A boolean array indicating which points satisfy both criteria.
     good_pts4d = (np.abs(pts4d[:, 3]) > 0.005) & (pts4d[:, 2] > 0)
+    renderPts = []
     for i, p in enumerate(pts4d):
         # If the point is not good (i.e., good_pts4d[i] is False), 
         # the loop skips the current iteration and moves to the next point.
@@ -62,6 +63,7 @@ def process_frame(img):
         pt = Point(mapp, p)
         pt.add_observation(f1, i)
         pt.add_observation(f2, i)
+        renderPts.append(p[0:3])
 
  
     # visualize the image
@@ -78,7 +80,7 @@ def process_frame(img):
     
     if 1:
         # 3-D display
-        mapp.display()
+        mapp.display(np.array(renderPts))
  
 def triangulate(pose1, pose2, pts1, pts2):
     # Initialize the result array to store the homogeneous coordinates of the 3D points

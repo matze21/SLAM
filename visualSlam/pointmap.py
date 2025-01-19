@@ -29,11 +29,12 @@ class Map(object):
     def viewer_refresh(self,poses, pts):
         # Update ego vehicle position
         translations = poses[:, :3, 3]
-        print(translations,translations[translations.shape[0]-1,:])
-        self.ego_sphere.translate(translations[translations.shape[0]-1,:], relative=True)
+        print(translations[translations.shape[0]-1,:])
+        self.ego_sphere.translate(translations[translations.shape[0]-1,:], relative=False)
 
         # Update point cloud
-        #self.pcd.points = o3d.utility.Vector3dVector(pts)
+        print('pts',pts.shape)
+        self.pcd.points = o3d.utility.Vector3dVector(pts)
         self.pcd.paint_uniform_color([0, 1, 0])  # Green color
 
         # Update geometries
@@ -44,16 +45,10 @@ class Map(object):
         self.vis.poll_events()
         self.vis.update_renderer()
 
-    def display(self):
+    def display(self,pts):
         poses = np.array([frame.pose for frame in self.frames])
-        pts = np.array([point.pt for point in self.points])
 
         self.viewer_refresh(poses, pts)
-
-    def run_viewer(self):
-        self.create_viewer()
-        while True:
-            self.viewer_refresh()
 
 class Point(object):
     def __init__(self, mapp, loc):
