@@ -4,10 +4,11 @@ from extractor import Frame, denormalize, match_frames, add_ones
 import numpy as np
 from pointmap import Map, Point
 import os
+import time
  
 ### Camera intrinsics
 # define principal point offset or optical center coordinates
-W, H = 720, 1240
+W, H = 720//2, 1240//2
  
 # define focus length
 F = 270
@@ -53,7 +54,6 @@ def process_frame(img):
     # Reject points without enough "Parallax" and points behind the camera
     # returns, A boolean array indicating which points satisfy both criteria.
     good_pts4d = (np.abs(pts4d[:, 3]) > 0.005) & (pts4d[:, 2] > 0)
- 
     for i, p in enumerate(pts4d):
         # If the point is not good (i.e., good_pts4d[i] is False), 
         # the loop skips the current iteration and moves to the next point.
@@ -62,19 +62,23 @@ def process_frame(img):
         pt = Point(mapp, p)
         pt.add_observation(f1, i)
         pt.add_observation(f2, i)
+
  
-    for pt1, pt2 in zip(f1.pts[idx1], f2.pts[idx2]):
-        u1, v1 = denormalize(K, pt1)
-        u2, v2 = denormalize(K, pt2)
- 
-        cv2.circle(img, (u1,v1), 3, (0,255,0))
-        cv2.line(img, (u1,v1), (u2, v2), (255,0,0))
- 
-    # 2-D display
-    display.paint(img)
- 
-    # 3-D display
-    mapp.display()
+    # visualize the image
+    if 0:
+        for pt1, pt2 in zip(f1.pts[idx1], f2.pts[idx2]):
+            u1, v1 = denormalize(K, pt1)
+            u2, v2 = denormalize(K, pt2)
+    
+            cv2.circle(img, (u1,v1), 3, (0,255,0))
+            cv2.line(img, (u1,v1), (u2, v2), (255,0,0))
+    
+        # 2-D display
+        display.paint(img)
+    
+    if 1:
+        # 3-D display
+        mapp.display()
  
 def triangulate(pose1, pose2, pts1, pts2):
     # Initialize the result array to store the homogeneous coordinates of the 3D points
@@ -109,8 +113,9 @@ if __name__== "__main__":
     folder_path_img = folder_path+'/Camera'
 
     image_filenames = sorted(os.listdir(folder_path_img))[1:-1]
- 
+    
     for img in image_filenames:
         path = os.path.join(folder_path_img, img)
         frame = cv2.imread(path)
         process_frame(frame)
+        time.sleep(1)
