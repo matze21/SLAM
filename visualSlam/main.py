@@ -23,6 +23,7 @@ display = Display(W, H)
 # initialize a map
 mapp = Map()
 mapp.create_viewer()
+renderPts = []
 
 def process_frame(img):
     img = cv2.resize(img, (W, H))
@@ -54,7 +55,6 @@ def process_frame(img):
     # Reject points without enough "Parallax" and points behind the camera
     # returns, A boolean array indicating which points satisfy both criteria.
     good_pts4d = (np.abs(pts4d[:, 3]) > 0.005) & (pts4d[:, 2] > 0)
-    renderPts = []
     for i, p in enumerate(pts4d):
         # If the point is not good (i.e., good_pts4d[i] is False), 
         # the loop skips the current iteration and moves to the next point.
